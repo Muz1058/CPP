@@ -1,0 +1,849 @@
+#include <iostream>
+#include <fstream>
+
+using namespace std;
+
+// Function to read matrix from file
+int** input_matrix_from_file(const char* filename, int& rows, int& columns) {
+    ifstream file(filename);
+    if (!file.is_open()) {
+        cout << "Unable to open file." << endl;
+        return nullptr;
+    }
+
+    rows = 0;
+    columns = 0;
+    char line[1000];
+
+    ////////////////Find number of rows and columns
+    while (file.getline(line, 1000)) {
+        int cur_columns = 0;
+        bool in = false;
+        for (int i = 0; line[i] != '\0'; i++) {
+            if (line[i] == ' ') {
+                if (in) {
+                    cur_columns++;
+                    in = false;
+                }
+            }
+            else {
+                in = true;
+            }
+        }
+        if (in) cur_columns++;
+
+        if (rows == 0) {
+            columns = cur_columns;
+        }
+        else if (cur_columns != columns) {
+            cout << "Unbalanced number of columns in line " << rows + 1 << endl;
+            file.close();
+            return nullptr;
+        }
+        rows++;
+    }
+
+    if (rows == 0 || columns == 0) {
+        cout << "File is empty or improperly formatted." << endl;
+        file.close();
+        return nullptr;
+    }
+
+    // Reset file and read matrix values
+    file.clear();
+    file.seekg(0, ios::beg);
+
+    int** matrix = new int* [rows];
+    for (int i = 0; i < rows; i++) {
+        matrix[i] = new int[columns];
+        for (int j = 0; j < columns; j++) {
+            file >> matrix[i][j];
+        }
+    }
+
+    file.close();
+    return matrix;
+}
+// Function to create matrix manually
+int** create_matrix_from_user(int& rows, int& columns) {
+    cout << "Enter number of rows: ";
+    cin >> rows;
+    cout << "Enter number of columns: ";
+    cin >> columns;
+
+    int** matrix = new int* [rows];
+    for (int i = 0; i < rows; i++) {
+        matrix[i] = new int[columns];
+        for (int j = 0; j < columns; j++) {
+            cout << "Enter element at position (" << i << "," << j << "): ";
+            cin >> matrix[i][j];
+        }
+    }
+
+    return matrix;
+}
+// Function to sum all values of the matrix
+int sum_of_matrix_elements(int** matrix, int rows, int columns) {
+    int sum = 0;
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < columns; j++) {
+            sum += matrix[i][j];
+        }
+    }
+    return sum;
+}
+// Function to calculate the product of all values in the matrix
+int product_matrix_elements(int** matrix, int rows, int columns) {
+    int product = 1;
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < columns; j++) {
+            product *= matrix[i][j];
+        }
+    }
+    return product;
+}
+// Function to calculate row-wise average
+void row_wise_avg(int** matrix, int rows, int columns) {
+    for (int i = 0; i < rows; i++) {
+        int sum = 0;
+        for (int j = 0; j < columns; j++) {
+            sum += matrix[i][j];
+        }
+        cout << "Average of row " << i + 1 << ": " << (float)sum / columns << endl;
+    }
+}
+
+// Function to calculate column-wise average
+void columnWiseAverage(int** matrix, int rows, int columns) {
+    for (int j = 0; j < columns; j++) {
+        int sum = 0;
+        for (int i = 0; i < rows; i++) {
+            sum += matrix[i][j];
+        }
+        cout << "Average of column " << j + 1 << ": " << (float)sum / rows << endl;
+    }
+}
+
+// Function to calculate the average of the whole matrix
+float avg_Matrix(int** matrix, int rows, int columns) {
+    int sum = sum_of_matrix_elements(matrix, rows, columns);
+    return (float)sum / (rows * columns);
+}
+
+// Function to sort each row of the matrix
+void rowWiseSort(int** matrix, int rows, int columns) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < columns - 1; j++) {
+            for (int k = 0; k < columns - j - 1; k++) {
+                if (matrix[i][k] > matrix[i][k + 1]) {
+                    int temp = matrix[i][k];
+                    matrix[i][k] = matrix[i][k + 1];
+                    matrix[i][k + 1] = temp;
+                }
+            }
+        }
+    }
+}
+
+// Function to sort each column of the matrix
+void columns_sort_matrix(int** matrix, int rows, int columns) {
+    for (int j = 0; j < columns; j++) {
+        for (int i = 0; i < rows - 1; i++) {
+            for (int k = 0; k < rows - i - 1; k++) {
+                if (matrix[k][j] > matrix[k + 1][j]) {
+                    int temp = matrix[k][j];
+                    matrix[k][j] = matrix[k + 1][j];
+                    matrix[k + 1][j] = temp;
+                }
+            }
+        }
+    }
+}
+
+// Function for scalar matrix addition
+void scalarMatrixAddition(int** matrix, int rows, int columns, int scalar) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < columns; j++) {
+            matrix[i][j] += scalar;
+        }
+    }
+}
+void matrix_writing_to_file(int** matrix, int rows, int columns, const char* filename) {
+    ofstream outFile(filename);
+
+    if (!outFile) {
+        cerr << "Error: Could not open file " << filename << " for writing." << endl;
+        return;
+    }
+
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < columns; j++) {
+            outFile << matrix[i][j] << " ";
+        }
+        outFile << endl;
+    }
+
+    outFile.close();
+}
+// Function to display the matrix
+void displying_matrix(int** matrix, int rows, int columns) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < columns; j++) {
+            cout << matrix[i][j] << " ";
+        }
+        cout << endl;
+    }
+}
+char is_convert(char alpha) {
+    if (int(alpha) >= 65 && int(alpha) <= 90) {
+        alpha = int(alpha) + 32;
+    }
+    return alpha;
+}
+// Function to transpose the matrix
+int** transpose(int** matrix, int rows, int columns) {
+    int** transpose_matrix = new int* [columns];
+    for (int i = 0; i < columns; i++) {
+        transpose_matrix[i] = new int[rows];
+        for (int j = 0; j < rows; j++) {
+            transpose_matrix[i][j] = matrix[j][i];
+        }
+    }
+    return transpose_matrix;
+}
+
+// Function to get the determinant of the matrix
+int determinant(int** matrix, int n) {
+    if (n == 1)
+        return matrix[0][0];
+    if (n == 2)
+        return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
+
+    int det = 0;
+    for (int p = 0; p < n; p++) {
+        int** temp_matrix = new int* [n - 1];
+        for (int i = 0; i < n - 1; i++) {
+            temp_matrix[i] = new int[n - 1];
+        }
+        for (int i = 1; i < n; i++) {
+            int temp_col = 0;
+            for (int j = 0; j < n; j++) {
+                if (j == p)
+                    continue;
+                temp_matrix[i - 1][temp_col] = matrix[i][j];
+                temp_col++;
+            }
+        }
+        int subDet = determinant(temp_matrix, n - 1);
+        det += (p % 2 == 0 ? 1 : -1) * matrix[0][p] * subDet;
+
+        for (int i = 0; i < n - 1; i++) {
+            delete[] temp_matrix[i];
+        }
+        delete[] temp_matrix;
+    }
+    return det;
+}
+
+// Function to get the cofactor matrix
+void cofactor(int** matrix, int** temp, int p, int q, int n) {
+    int i = 0, j = 0;
+    for (int row = 0; row < n; row++) {
+        for (int col = 0; col < n; col++) {
+            if (row != p && col != q) {
+                temp[i][j++] = matrix[row][col];
+                if (j == n - 1) {
+                    j = 0;
+                    i++;
+                }
+            }
+        }
+    }
+}
+
+// Function to calculate the inverse of the matrix
+bool inverseMatrix(int** matrix, float** inverse, int n) {
+    int det = determinant(matrix, n);
+    if (det == 0) {
+        cout << "Singular matrix, can't find its inverse" << endl;
+        return false;
+    }
+
+    int** adjoint = new int* [n];
+    for (int i = 0; i < n; i++) {
+        adjoint[i] = new int[n];
+    }
+
+    if (n == 1) {
+        inverse[0][0] = 1;
+        return true;
+    }
+
+    int sign = 1;
+    int** temp = new int* [n];
+    for (int i = 0; i < n; i++) {
+        temp[i] = new int[n];
+    }
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            cofactor(matrix, temp, i, j, n);
+            sign = ((i + j) % 2 == 0) ? 1 : -1;
+            adjoint[j][i] = (sign)*determinant(temp, n - 1);
+        }
+    }
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            inverse[i][j] = adjoint[i][j] / float(det);
+        }
+    }
+
+    for (int i = 0; i < n; i++) {
+        delete[] adjoint[i];
+        delete[] temp[i];
+    }
+    delete[] adjoint;
+    delete[] temp;
+
+    return true;
+}
+void Matrix_Manuplation() {
+    cout << "\033[1;36m\t\t\t\t\t__________________________________\n\n\n";
+    cout << "\033[1;36m\t\t\t\t\t|\tMATRIX MANUPLATION        |\n\n";
+    cout << "\033[1;36m\t\t\t\t\t__________________________________\n\n";
+}
+void displying_matrix(float** matrix, int rows, int columns) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < columns; j++) {
+            cout << matrix[i][j] << " ";
+        }
+        cout << endl;
+    }
+}
+// Function for scalar matrix subtraction
+void Subtraction_of_scalar_matrix(int** matrix, int rows, int columns, int scalar) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < columns; j++) {
+            matrix[i][j] -= scalar;
+        }
+    }
+}
+
+// Function for scalar matrix multiplication
+void Multiplication_of_scalar_matrix(int** matrix, int rows, int columns, int scalar) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < columns; j++) {
+            matrix[i][j] *= scalar;
+        }
+    }
+}
+
+// Function for scalar matrix division
+void scalarMatrixDivision(int** matrix, int rows, int columns, int scalar) {
+    if (scalar == 0) {
+        cout << "Error: Division by zero" << endl;
+        return;
+    }
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < columns; j++) {
+            matrix[i][j] /= scalar;
+        }
+    }
+}
+bool readTwoMatricesFromFile(const char* filename, int**& matrix1, int& rows1, int& columns1, int**& matrix2, int& rows2, int& columns2) {
+    ifstream file(filename);
+    if (!file.is_open()) {
+        cout << "Unable to open file." << endl;
+        return false;
+    }
+
+    // Read first matrix dimensions
+    file >> rows1 >> columns1;
+    if (file.fail() || rows1 <= 0 || columns1 <= 0) {
+        cout << "Invalid dimensions for the first matrix." << endl;
+        return false;
+    }
+
+    matrix1 = new int* [rows1];
+    for (int i = 0; i < rows1; i++) {
+        matrix1[i] = new int[columns1];
+        for (int j = 0; j < columns1; j++) {
+            file >> matrix1[i][j];
+        }
+    }
+
+    // Read second matrix dimensions
+    file >> rows2 >> columns2;
+    if (file.fail() || rows2 <= 0 || columns2 <= 0) {
+        cout << "Invalid dimensions for the second matrix." << endl;
+        return false;
+    }
+
+    matrix2 = new int* [rows2];
+    for (int i = 0; i < rows2; i++) {
+        matrix2[i] = new int[columns2];
+        for (int j = 0; j < columns2; j++) {
+            file >> matrix2[i][j];
+        }
+    }
+
+    file.close();
+    return true;
+}
+void two_matrix_devolp_by_user(int**& matrix1, int**& matrix2, int& rows1, int& columns1, int& rows2, int& columns2) {
+    cout << "Creating first matrix:" << endl;
+    matrix1 = create_matrix_from_user(rows1, columns1);
+
+    cout << "Creating second matrix:" << endl;
+    matrix2 = create_matrix_from_user(rows2, columns2);
+}
+
+int** multiply_matrices(int** matrix1, int rows1, int columns1, int** matrix2, int rows2, int columns2) {
+    if (columns1 != rows2) {
+        cout << "Matrix multiplication not possible, incompatible dimensions." << endl;
+        return nullptr;
+    }
+
+    int** result = new int* [rows1];
+    for (int i = 0; i < rows1; i++) {
+        result[i] = new int[columns2];
+        for (int j = 0; j < columns2; j++) {
+            result[i][j] = 0;
+            for (int k = 0; k < columns1; ++k) {
+                result[i][j] += matrix1[i][k] * matrix2[k][j];
+            }
+        }
+    }
+    return result;
+}
+int** subtract_matrices(int** matrix1, int** matrix2, int rows, int columns) {
+    int** result = new int* [rows];
+    for (int i = 0; i < rows; i++) {
+        result[i] = new int[columns];
+        for (int j = 0; j < columns; j++) {
+            result[i][j] = matrix1[i][j] - matrix2[i][j];
+        }
+    }
+    return result;
+}
+int** Addition_of_matices(int** matrix1, int** matrix2, int rows, int columns) {
+    int** result = new int* [rows];
+    for (int i = 0; i < rows; i++) {
+        result[i] = new int[columns];
+        for (int j = 0; j < columns; j++) {
+            result[i][j] = matrix1[i][j] + matrix2[i][j];
+        }
+    }
+    return result;
+}
+
+void printMenu() {
+    cout << "\033[1;32m\t\t\t\t\t*************************************";
+    cout << "\033[1;32m\n\t\t\t\t\tOPERATIONS PERFORMED BY THE PROGRAM\n";
+    cout << "\033[1;32m\t\t\t\t\t*************************************\n";
+    cout << "\t\t\t\t\t\033[1;36m     Choose an option\n";
+    cout << "\033[1;32m\t\t******************************************************************************************\n";
+    cout << "\t\t\033[1;32m* 1. Sum of Matrix (sum of all values)\033[0m\t * " << "\033[1;32m2. Product of Matrix (product of all values)  *\n";
+    cout << "\t\t\033[1;32m* 3. Row-wise Average       \t\t * " << "\033[1;32m4. Column-wise Average\t\t\t *\n";
+    cout << "\t\t\033[1;32m* 5. Average of whole Matrix\t\t * " << "\033[1;32m6. Row-wise sorting of Matrix  \t\t *\n";
+    cout << "\t\t\033[1;32m* 7. Column-wise sorting of Matrix\t *" << "\033[1;32m 8. Scalar Matrix Addition \t\t\t *\n";
+    cout << "\t\t\033[1;32m* 9. Addition of two Matrices\t\t"<< "\033[1;32m * 10. Scalar Matrix Subtraction     \t\t *\n";
+    cout << "\t\t\033[1;32m* 11. Subtraction of two Matrices\t"<< "\033[1;32m * 12. Scalar Matrix Multiplication \t\t *\n";
+    cout << "\t\t\033[1;32m* 13. Multiplication of two Matrices\t" << "\033[1;32m * 14. Scalar Matrix Division \t\t\t *\n";
+    cout << "\t\t\033[1;32m* 15. Matrix transpose\t\t\t * " << "\033[1;32m16. Matrix determinant \t\t\t *\n";
+    cout << "\t\t\033[1;32m* 17. Matrix Inverse\t\t\t * " << "\033[1;32m0. Exit \t\t\t\t\t *\n";
+    cout << "\033[1;32m\t\t******************************************************************************************\n";
+}
+int main() {
+    ofstream output;
+    int op_choice;
+    char input_choice;
+    int** matrix = nullptr;
+    int rows = 0, columns = 0;
+    char filename[100];
+    int** matrix1 = nullptr;
+    int** matrix2 = nullptr;
+    int rows1 = 0, columns1 = 0;
+    int rows2 = 0, columns2 = 0;
+    int output_choice;
+    Matrix_Manuplation();
+    while (true) {
+        printMenu();
+        cout << "Enter your choice: ";
+        cin >> op_choice;
+        cin.ignore(); // To ignore the newline character after the integer input
+
+        if (op_choice == 0) {
+            cout << "Exiting..." << endl;
+            break;
+        }
+
+        cout << "Enter input manually---->Press M\n";
+        cout << "Enter input from file---->Press F\n";
+        cin >> input_choice;
+        input_choice = is_convert(input_choice);
+
+        if (input_choice == 'f') {
+            cout << "Enter the file name: ";
+            cin.ignore(); // To ignore the newline character after the char input
+            cin.getline(filename, 100);
+
+            if (op_choice == 9 || op_choice == 11 || op_choice == 13) {
+                if (!readTwoMatricesFromFile(filename, matrix1, rows1, columns1, matrix2, rows2, columns2)) {
+                    continue;
+                }
+            }
+            else {
+                matrix = input_matrix_from_file(filename, rows, columns);
+
+                if (matrix != nullptr) {
+                    cout << "Matrix loaded successfully:" << endl;
+                    displying_matrix(matrix, rows, columns);
+                }
+                else {
+                    cout << "Failed to load matrix." << endl;
+                    continue;
+                }
+            }
+        }
+        else if (input_choice == 'm') {
+            if (op_choice == 9 || op_choice == 11 || op_choice == 13) {
+                two_matrix_devolp_by_user(matrix1, matrix2, rows1, columns1, rows2, columns2);
+            }
+            else {
+                matrix = create_matrix_from_user(rows, columns);
+
+                if (matrix != nullptr) {
+                    cout << "Matrix created successfully:" << endl;
+                    displying_matrix(matrix, rows, columns);
+                }
+                else {
+                    cout << "Failed to create matrix." << endl;
+                    continue;
+                }
+            }
+        }
+        else {
+            cout << "Invalid input\n";
+            continue;
+        }
+        cout << "Output on console--->Press 1\n";
+        cout << "Output through file--->Press 2\n";
+        cin >> output_choice;
+        switch (op_choice) {
+        case 1: {
+            int sum = sum_of_matrix_elements(matrix, rows, columns);
+            if (output_choice == 1)
+                cout << "Sum of all values in the matrix: " << sum << endl;
+            else if (output_choice == 2) {
+                cout << "Result is written in file (Results.txt)\n";
+                output.open("Results.txt");
+                output << "Sum of all values in the matrix: " << sum << endl;
+                output.close();
+            }
+            else {
+                cout << "Invalid input\n";
+                continue;
+            }
+            break;
+        }
+        case 2: {
+            int product = product_matrix_elements(matrix, rows, columns);
+            if (output_choice == 1)
+                cout << "Product of all values in the matrix: " << product << endl;
+            else if (output_choice == 2) {
+                cout << "Result is written in file (Results.txt)\n";
+                output.open("Results.txt");
+                output << "Product of all values in the matrix: " << product << endl;
+                output.close();
+            }
+            else {
+                cout << "Invalid input\n";
+                continue;
+            }
+            break;
+        }
+        case 3: {
+            if (output_choice == 1) {
+                row_wise_avg(matrix, rows, columns);
+            }
+            else if (output_choice == 2) {
+                matrix_writing_to_file(matrix, rows, columns, "Results.txt");
+                cout << "Result is written in file (Results.txt)\n";
+            }
+            else {
+                cout << "Invalid input\n";
+                continue;
+            }
+            break;
+        }
+        case 4: {
+            if (output_choice == 1) {
+                columnWiseAverage(matrix, rows, columns);
+            }
+            else if (output_choice == 2) {
+                matrix_writing_to_file(matrix, rows, columns, "Results.txt");
+                cout << "Result is written in file (Results.txt)\n";
+            }
+            else {
+                cout << "Invalid input\n";
+                continue;
+            }
+            break;
+        }
+        case 5: {
+            float average = avg_Matrix(matrix, rows, columns);
+            if (output_choice == 1)
+                cout << "Average of all values in the matrix: " << average << endl;
+            else if (output_choice == 2) {
+                cout << "Output write in file (Results.txt)\n";
+                output.open("Results.txt");
+                output << "Average of all values in the matrix: " << average << endl;
+                output.close();
+            }
+            else {
+                cout << "Invalid input\n";
+                continue;
+            }
+            break;
+        }
+        case 6: {
+            rowWiseSort(matrix, rows, columns);
+            cout << "Row-wise sorted matrix:" << endl;
+            displying_matrix(matrix, rows, columns);
+            if (output_choice == 2) {
+                matrix_writing_to_file(matrix, rows, columns, "Results.txt");
+                cout << "Result is written in file (Results.txt)\n";
+            }
+            break;
+        }
+        case 7: {
+            columns_sort_matrix(matrix, rows, columns);
+            cout << "Column-wise sorted matrix:" << endl;
+            displying_matrix(matrix, rows, columns);
+            if (output_choice == 2) {
+                matrix_writing_to_file(matrix, rows, columns, "Results.txt");
+                cout << "Result is written in file (Results.txt)\n";
+            }
+            break;
+        }
+        case 8: {
+            int scalar;
+            cout << "Enter the scalar value for addition: ";
+            cin >> scalar;
+            scalarMatrixAddition(matrix, rows, columns, scalar);
+            cout << "Matrix after scalar addition:" << endl;
+            displying_matrix(matrix, rows, columns);
+            if (output_choice == 2) {
+                matrix_writing_to_file(matrix, rows, columns, "Results.txt");
+                cout << "Result is written in file (Results.txt)\n";
+            }
+            break;
+        }
+        case 9: {
+            if (rows1 == rows2 && columns1 == columns2) {
+                int** result = Addition_of_matices(matrix1, matrix2, rows1, columns1);
+                cout << "Result of addition:" << endl;
+                displying_matrix(result, rows1, columns1);
+                if (output_choice == 2) {
+                    matrix_writing_to_file(result, rows1, columns1, "Results.txt");
+                    cout << "Result is written in file (Results.txt)\n";
+                }
+                for (int i = 0; i < rows1; i++) {
+                    delete[] result[i];
+                }
+                delete[] result;
+            }
+            else {
+                cout << "Matrix dimensions do not match for addition." << endl;
+            }
+            break;
+        }
+        case 10: {
+            int scalar;
+            cout << "Enter the scalar value for subtraction: ";
+            cin >> scalar;
+            Subtraction_of_scalar_matrix(matrix, rows, columns, scalar);
+            cout << "Matrix after scalar subtraction:" << endl;
+            displying_matrix(matrix, rows, columns);
+            if (output_choice == 2) {
+                matrix_writing_to_file(matrix, rows, columns, "Results.txt");
+                cout << "Result is written in file (Results.txt)\n";
+            }
+            break;
+        }
+        case 11: {
+            if (rows1 == rows2 && columns1 == columns2) {
+                int** result = subtract_matrices(matrix1, matrix2, rows1, columns1);
+                cout << "Result of subtraction:" << endl;
+                displying_matrix(result, rows1, columns1);
+                if (output_choice == 2) {
+                    matrix_writing_to_file(result, rows1, columns1, "Results.txt");
+                    cout << "Result is written in file (Results.txt)\n";
+                }
+                for (int i = 0; i < rows1; i++) {
+                    delete[] result[i];
+                }
+                delete[] result;
+            }
+            else {
+                cout << "Matrix dimensions do not match for subtraction." << endl;
+            }
+            break;
+        }
+        case 12: {
+            int scalar;
+            cout << "Enter the scalar value for multiplication: ";
+            cin >> scalar;
+            Multiplication_of_scalar_matrix(matrix, rows, columns, scalar);
+            cout << "Matrix after scalar multiplication:" << endl;
+            displying_matrix(matrix, rows, columns);
+            if (output_choice == 2) {
+                matrix_writing_to_file(matrix, rows, columns, "Results.txt");
+                cout << "Result is written in file (Results.txt)\n";
+            }
+            break;
+        }
+        case 13: {
+            if (columns1 == rows2) {
+                int** result = multiply_matrices(matrix1, rows1, columns1, matrix2, rows2, columns2);
+                if (result != nullptr) {
+                    cout << "Result of multiplication:" << endl;
+                    displying_matrix(result, rows1, columns2);
+                    if (output_choice == 2) {
+                        matrix_writing_to_file(result, rows1, columns2, "Results.txt");
+                        cout << "Result is written in file (Results.txt)\n";
+                    }
+                    for (int i = 0; i < rows1; i++) {
+                        delete[] result[i];
+                    }
+                    delete[] result;
+                }
+            }
+            else {
+                cout << "Matrix dimensions do not match for multiplication." << endl;
+            }
+            break;
+        }
+        case 14: {
+            int scalar;
+            cout << "Enter the scalar value for division: ";
+            cin >> scalar;
+            scalarMatrixDivision(matrix, rows, columns, scalar);
+            cout << "Matrix after scalar division:" << endl;
+            displying_matrix(matrix, rows, columns);
+            if (output_choice == 2) {
+                matrix_writing_to_file(matrix, rows, columns, "Results.txt");
+                cout << "Result is written in file (Results.txt)\n";
+            }
+            break;
+        }
+        case 15: {
+            int** transpose_matrix = transpose(matrix, rows, columns);
+            cout << "Transposed matrix:" << endl;
+            displying_matrix(transpose_matrix, columns, rows);
+            if (output_choice == 2) {
+                matrix_writing_to_file(transpose_matrix, columns, rows, "Results.txt");
+                cout << "Result is written in file (Results.txt)\n";
+            }
+            // Free the transposed matrix
+            for (int i = 0; i < columns; i++) {
+                delete[] transpose_matrix[i];
+            }
+            delete[] transpose_matrix;
+            break;
+        }
+        case 16: {
+            if (rows == columns) {
+                int det = determinant(matrix, rows);
+                cout << "Determinant of the matrix: " << det << endl;
+                if (output_choice == 2) {
+                    output.open("Results.txt");
+                    output << "Determinant of the matrix: " << det << endl;
+                    output.close();
+                }
+            }
+            else {
+                cout << "Matrix is not square, can't compute determinant." << endl;
+            }
+            break;
+        }
+        case 17: {
+            if (rows == columns) {
+                float** inverse = new float* [rows];
+                for (int i = 0; i < rows; i++) {
+                    inverse[i] = new float[columns];
+                }
+                if (inverseMatrix(matrix, inverse, rows)) {
+                    cout << "Inverse of the matrix:" << endl;
+                    for (int i = 0; i < rows; i++) {
+                        for (int j = 0; j < columns; j++) {
+                            cout << inverse[i][j] << " ";
+                        }
+                        cout << endl;
+                    }
+                    if (output_choice == 2) {
+                        ofstream outFile("Results.txt");
+                        if (outFile) {
+                            for (int i = 0; i < rows; i++) {
+                                for (int j = 0; j < columns; j++) {
+                                    outFile << inverse[i][j] << " ";
+                                }
+                                outFile << endl;
+                            }
+                            outFile.close();
+                            cout << "Result is written in file (Results.txt)\n";
+                        }
+                        else {
+                            cerr << "Error: Could not open file Results.txt for writing." << endl;
+                        }
+                    }
+                }
+                else {
+                    cout << "Matrix is singular, can't compute inverse." << endl;
+                }
+                // Free the inverse matrix
+                for (int i = 0; i < rows; i++) {
+                    delete[] inverse[i];
+                }
+                delete[] inverse;
+            }
+            else {
+                cout << "Matrix is not square, can't compute inverse." << endl;
+            }
+            break;
+        }
+        default:
+            cout << "Invalid choice." << endl;
+            break;
+        }
+
+        // Deallocate memory for matrices
+        if (matrix != nullptr) {
+            for (int i = 0; i < rows; i++) {
+                delete[] matrix[i];
+            }
+            delete[] matrix;
+            matrix = nullptr;
+        }
+
+        if (matrix1 != nullptr) {
+            for (int i = 0; i < rows1; i++) {
+                delete[] matrix1[i];
+            }
+            delete[] matrix1;
+            matrix1 = nullptr;
+        }
+
+        if (matrix2 != nullptr) {
+            for (int i = 0; i < rows2; i++) {
+                delete[] matrix2[i];
+            }
+            delete[] matrix2;
+            matrix2 = nullptr;
+        }
+    }
+
+    return 0;
+}

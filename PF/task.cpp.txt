@@ -1,0 +1,22 @@
+#include<iostream>
+#include<fstream>
+using namespace std;
+int main()
+{
+	//ofstream input("STORY.txt");
+	ifstream story("STORY.txt");
+	int count = 0;
+	char arr[100];
+	int i = 0;
+	while (!story.eof())
+	{
+		story.getline(arr, 100,'\n');
+		if (arr[i] == 'A')
+		{
+			count++;
+		}		
+	}
+	cout << count;
+
+	return 0;
+}
